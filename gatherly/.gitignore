@@ -351,6 +351,3 @@ MigrationBackup/
 
 # Volume data
 db/
-
-.containers/
-.idea/

@@ -1,5 +1,4 @@
 using FluentValidation;
-using Gatherly.App.Extensions;
 using Gatherly.App.OptionsSetup;
 using Gatherly.Application.Behaviors;
 using Gatherly.Domain.Repositories;
@@ -36,7 +35,7 @@ builder
                 Gatherly.Persistence.AssemblyReference.Assembly)
             .AddClasses(false)
             .UsingRegistrationStrategy(RegistrationStrategy.Skip)
-            .AsImplementedInterfaces()
+            .AsMatchingInterface()
             .WithScopedLifetime());
 
 builder.Services.AddMemoryCache();
@@ -62,6 +61,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
     {
         optionsBuilder.UseSqlServer(connectionString);
     });
+
+builder.Services.AddScoped<IJob, ProcessOutboxMessagesJob>();
 
 builder.Services.AddQuartz(configure =>
 {
@@ -101,13 +102,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
-    app.ApplyMigrations();
 }
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

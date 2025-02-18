@@ -1,13 +1,13 @@
 ﻿using Gatherly.Application.Members.CreateMember;
-using Gatherly.Application.Members.UpdateMember;
 using Gatherly.Application.Members.GetMemberById;
 using Gatherly.Application.Members.Login;
+using Gatherly.Application.Members.UpdateMember;
+using Gatherly.Domain.Enums;
 using Gatherly.Domain.Shared;
+using Gatherly.Infrastructure.Authentication;
 using Gatherly.Presentation.Abstractions;
 using Gatherly.Presentation.Contracts.Members;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gatherly.Presentation.Controllers;
@@ -20,7 +20,7 @@ public sealed class MembersController : ApiController
     {
     }
 
-    [Authorize]
+    [HasPermission(Permission.ReadMember)]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetMemberById(Guid id, CancellationToken cancellationToken)
     {
@@ -30,19 +30,24 @@ public sealed class MembersController : ApiController
 
         return response.IsSuccess ? Ok(response.Value) : NotFound(response.Error);
     }
-    
-    [HttpPost("login")]
-    public async Task<IActionResult> LoginMember([FromBody] LoginRequest request, CancellationToken cancellationToken)
-    {
-        LoginCommand command = new(request.Email);
-        Result<string> result = await Sender.Send(command, cancellationToken);
 
-        if (result.IsFailure)
+    [HttpPost("login")]
+    public async Task<IActionResult> LoginMember(
+        [FromBody] LoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new LoginCommand(request.Email);
+
+        Result<string> tokenResult = await Sender.Send(
+            command,
+            cancellationToken);
+
+        if (tokenResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(tokenResult);
         }
 
-        return Ok(result.Value);
+        return Ok(tokenResult.Value);
     }
 
     [HttpPost]
@@ -61,13 +66,14 @@ public sealed class MembersController : ApiController
         {
             return HandleFailure(result);
         }
-
+        
         return CreatedAtAction(
             nameof(GetMemberById),
             new { id = result.Value },
             result.Value);
     }
 
+    [HasPermission(Permission.UpdateMember)]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateMember(
         Guid id,

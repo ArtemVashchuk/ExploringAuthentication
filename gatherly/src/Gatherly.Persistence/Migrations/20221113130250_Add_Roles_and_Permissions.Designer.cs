@@ -4,6 +4,7 @@ using Gatherly.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Gatherly.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221113130250_Add_Roles_and_Permissions")]
+    partial class AddRolesandPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -207,7 +210,7 @@ namespace Gatherly.Persistence.Migrations
 
                     b.HasIndex("PermissionId");
 
-                    b.ToTable("RolePermission", (string)null);
+                    b.ToTable("RolePermission");
 
                     b.HasData(
                         new
@@ -275,7 +278,7 @@ namespace Gatherly.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("MemberRole", (string)null);
+                    b.ToTable("MemberRole");
                 });
 
             modelBuilder.Entity("Gatherly.Domain.Entities.Attendee", b =>
