@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Volume data
 db/
+
+# Ignore IntelliJ IDEA project files and settings
+.idea/

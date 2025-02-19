@@ -3,15 +3,12 @@ using Gatherly.Domain.Primitives;
 
 namespace Gatherly.Persistence.Specifications;
 
-public abstract class Specification<TEntity>
+public abstract class Specification<TEntity>(Expression<Func<TEntity, bool>>? criteria)
     where TEntity : Entity
 {
-    protected Specification(Expression<Func<TEntity, bool>>? criteria) =>
-        Criteria = criteria;
-
     public bool IsSplitQuery { get; protected set; }
 
-    public Expression<Func<TEntity, bool>>? Criteria { get; }
+    public Expression<Func<TEntity, bool>>? Criteria { get; } = criteria;
 
     public List<Expression<Func<TEntity, object>>> IncludeExpressions { get; } = new();
 

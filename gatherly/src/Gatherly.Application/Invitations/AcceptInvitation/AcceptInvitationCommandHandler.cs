@@ -6,25 +6,15 @@ using MediatR;
 
 namespace Gatherly.Application.Invitations.AcceptInvitation;
 
-internal sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvitationCommand>
+internal sealed class AcceptInvitationCommandHandler(
+    IGatheringRepository gatheringRepository,
+    IAttendeeRepository attendeeRepository,
+    IUnitOfWork unitOfWork)
+    : IRequestHandler<AcceptInvitationCommand>
 {
-    private readonly IGatheringRepository _gatheringRepository;
-    private readonly IAttendeeRepository _attendeeRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public AcceptInvitationCommandHandler(
-        IGatheringRepository gatheringRepository,
-        IAttendeeRepository attendeeRepository,
-        IUnitOfWork unitOfWork)
-    {
-        _gatheringRepository = gatheringRepository;
-        _attendeeRepository = attendeeRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Unit> Handle(AcceptInvitationCommand request, CancellationToken cancellationToken)
     {
-        Gathering? gathering = await _gatheringRepository
+        Gathering? gathering = await gatheringRepository
             .GetByIdWithCreatorAsync(request.GatheringId, cancellationToken);
 
         if (gathering is null)
@@ -44,10 +34,10 @@ internal sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInv
 
         if (attendeeResult.IsSuccess)
         {
-            _attendeeRepository.Add(attendeeResult.Value);
+            attendeeRepository.Add(attendeeResult.Value);
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

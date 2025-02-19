@@ -7,19 +7,11 @@ using Gatherly.Domain.ValueObjects;
 
 namespace Gatherly.Application.Members.CreateMember;
 
-internal sealed class CreateMemberCommandHandler : ICommandHandler<CreateMemberCommand, Guid>
+internal sealed class CreateMemberCommandHandler(
+    IMemberRepository memberRepository,
+    IUnitOfWork unitOfWork)
+    : ICommandHandler<CreateMemberCommand, Guid>
 {
-    private readonly IMemberRepository _memberRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateMemberCommandHandler(
-        IMemberRepository memberRepository,
-        IUnitOfWork unitOfWork)
-    {
-        _memberRepository = memberRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result<Guid>> Handle(CreateMemberCommand request, CancellationToken cancellationToken)
     {
         Result<Email> emailResult = Email.Create(request.Email);
@@ -32,7 +24,7 @@ internal sealed class CreateMemberCommandHandler : ICommandHandler<CreateMemberC
         Result<FirstName> firstNameResult = FirstName.Create(request.FirstName);
         Result<LastName> lastNameResult = LastName.Create(request.LastName);
 
-        if (!await _memberRepository.IsEmailUniqueAsync(emailResult.Value, cancellationToken))
+        if (!await memberRepository.IsEmailUniqueAsync(emailResult.Value, cancellationToken))
         {
             return Result.Failure<Guid>(DomainErrors.Member.EmailAlreadyInUse);
         }
@@ -43,9 +35,9 @@ internal sealed class CreateMemberCommandHandler : ICommandHandler<CreateMemberC
             firstNameResult.Value,
             lastNameResult.Value);
 
-        _memberRepository.Add(member);
+        memberRepository.Add(member);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return member.Id;
     }

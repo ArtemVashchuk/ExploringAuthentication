@@ -7,19 +7,14 @@ using Gatherly.Domain.Shared;
 
 namespace Gatherly.Application.Gatherings.GetGatheringById;
 
-internal sealed class GetGatheringByIdQueryHandler
+internal sealed class GetGatheringByIdQueryHandler(IGatheringRepository gatheringRepository)
     : IQueryHandler<GetGatheringByIdQuery, GatheringResponse>
 {
-    private readonly IGatheringRepository _gatheringRepository;
-
-    public GetGatheringByIdQueryHandler(IGatheringRepository gatheringRepository) =>
-        _gatheringRepository = gatheringRepository;
-
     public async Task<Result<GatheringResponse>> Handle(
         GetGatheringByIdQuery request,
         CancellationToken cancellationToken)
     {
-        Gathering? gathering = await _gatheringRepository.GetByIdAsync(
+        Gathering? gathering = await gatheringRepository.GetByIdAsync(
             request.GatheringId,
             cancellationToken);
 
