@@ -1,8 +1,3 @@
 ﻿namespace Gatherly.Domain.Exceptions;
 
-public sealed class GatheringMaximumNumberOfAttendeesIsNullDomainException : DomainException
-{
-    public GatheringMaximumNumberOfAttendeesIsNullDomainException(string message) : base(message)
-    {
-    }
-}
+public sealed class GatheringMaximumNumberOfAttendeesIsNullDomainException(string message) : DomainException(message);

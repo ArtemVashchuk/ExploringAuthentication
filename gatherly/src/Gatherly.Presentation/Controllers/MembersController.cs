@@ -13,13 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gatherly.Presentation.Controllers;
 
 [Route("api/members")]
-public sealed class MembersController : ApiController
+public sealed class MembersController(ISender sender) : ApiController(sender)
 {
-    public MembersController(ISender sender)
-        : base(sender)
-    {
-    }
-
     [HasPermission(Permission.ReadMember)]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetMemberById(Guid id, CancellationToken cancellationToken)

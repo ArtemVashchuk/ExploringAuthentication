@@ -6,23 +6,14 @@ using Gatherly.Domain.Repositories;
 
 namespace Gatherly.Application.Invitations.Events;
 
-internal sealed class InvitationAcceptedDomainEventHandler
+internal sealed class InvitationAcceptedDomainEventHandler(
+    IEmailService emailService,
+    IGatheringRepository gatheringRepository)
     : IDomainEventHandler<InvitationAcceptedDomainEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly IGatheringRepository _gatheringRepository;
-
-    public InvitationAcceptedDomainEventHandler(
-        IEmailService emailService,
-        IGatheringRepository gatheringRepository)
-    {
-        _emailService = emailService;
-        _gatheringRepository = gatheringRepository;
-    }
-
     public async Task Handle(InvitationAcceptedDomainEvent notification, CancellationToken cancellationToken)
     {
-        Gathering? gathering = await _gatheringRepository.GetByIdWithCreatorAsync(
+        Gathering? gathering = await gatheringRepository.GetByIdWithCreatorAsync(
             notification.GatheringId, cancellationToken);
 
         if (gathering is null)
@@ -30,7 +21,7 @@ internal sealed class InvitationAcceptedDomainEventHandler
             return;
         }
 
-        await _emailService.SendInvitationAcceptedEmailAsync(
+        await emailService.SendInvitationAcceptedEmailAsync(
             gathering,
             cancellationToken);
     }

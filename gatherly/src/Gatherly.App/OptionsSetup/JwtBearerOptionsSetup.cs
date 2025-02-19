@@ -6,14 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Gatherly.App.OptionsSetup;
 
-public class JwtBearerOptionsSetup : IPostConfigureOptions<JwtBearerOptions>
+public class JwtBearerOptionsSetup(IOptions<JwtOptions> jwtOptions) : IPostConfigureOptions<JwtBearerOptions>
 {
-    private readonly JwtOptions _jwtOptions;
-
-    public JwtBearerOptionsSetup(IOptions<JwtOptions> jwtOptions)
-    {
-        _jwtOptions = jwtOptions.Value;
-    }
+    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
     public void PostConfigure(string? name, JwtBearerOptions options)
     {

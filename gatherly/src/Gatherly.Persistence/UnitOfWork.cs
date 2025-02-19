@@ -7,26 +7,19 @@ using Newtonsoft.Json;
 
 namespace Gatherly.Persistence;
 
-internal sealed class UnitOfWork : IUnitOfWork
+internal sealed class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork
 {
-    private readonly ApplicationDbContext _dbContext;
-
-    public UnitOfWork(ApplicationDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ConvertDomainEventsToOutboxMessages();
         UpdateAuditableEntities();
 
-        return _dbContext.SaveChangesAsync(cancellationToken);
+        return dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private void ConvertDomainEventsToOutboxMessages()
     {
-        var outboxMessages = _dbContext.ChangeTracker
+        var outboxMessages = dbContext.ChangeTracker
             .Entries<AggregateRoot>()
             .Select(x => x.Entity)
             .SelectMany(aggregateRoot =>
@@ -51,13 +44,13 @@ internal sealed class UnitOfWork : IUnitOfWork
             })
             .ToList();
 
-        _dbContext.Set<OutboxMessage>().AddRange(outboxMessages);
+        dbContext.Set<OutboxMessage>().AddRange(outboxMessages);
     }
 
     private void UpdateAuditableEntities()
     {
         IEnumerable<EntityEntry<IAuditableEntity>> entries =
-            _dbContext
+            dbContext
                 .ChangeTracker
                 .Entries<IAuditableEntity>();
 

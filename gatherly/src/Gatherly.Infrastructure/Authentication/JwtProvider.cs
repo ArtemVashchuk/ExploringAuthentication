@@ -8,14 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Gatherly.Infrastructure.Authentication;
 
-internal sealed class JwtProvider : IJwtProvider
+internal sealed class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
 {
-    private readonly JwtOptions _options;
-
-    public JwtProvider(IOptions<JwtOptions> options)
-    {
-        _options = options.Value;
-    }
+    private readonly JwtOptions _options = options.Value;
 
     public string Generate(Member member)
     {

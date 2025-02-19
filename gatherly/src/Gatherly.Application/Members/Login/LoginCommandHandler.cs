@@ -8,27 +8,18 @@ using Gatherly.Domain.ValueObjects;
 
 namespace Gatherly.Application.Members.Login;
 
-internal sealed class LoginCommandHandler
+internal sealed class LoginCommandHandler(
+    IMemberRepository memberRepository,
+    IJwtProvider jwtProvider)
     : ICommandHandler<LoginCommand, string>
 {
-    private readonly IMemberRepository _memberRepository;
-    private readonly IJwtProvider _jwtProvider;
-
-    public LoginCommandHandler(
-        IMemberRepository memberRepository,
-        IJwtProvider jwtProvider)
-    {
-        _memberRepository = memberRepository;
-        _jwtProvider = jwtProvider;
-    }
-
     public async Task<Result<string>> Handle(
         LoginCommand request,
         CancellationToken cancellationToken)
     {
         Result<Email> email = Email.Create(request.Email);
 
-        Member? member = await _memberRepository.GetByEmailAsync(
+        Member? member = await memberRepository.GetByEmailAsync(
             email.Value,
             cancellationToken);
 
@@ -38,7 +29,7 @@ internal sealed class LoginCommandHandler
                 DomainErrors.Member.InvalidCredentials);
         }
 
-        string token = _jwtProvider.Generate(member);
+        string token = jwtProvider.Generate(member);
 
         return token;
     }

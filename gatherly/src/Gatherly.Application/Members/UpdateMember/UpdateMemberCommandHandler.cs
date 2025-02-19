@@ -7,24 +7,16 @@ using Gatherly.Domain.ValueObjects;
 
 namespace Gatherly.Application.Members.UpdateMember;
 
-internal sealed class UpdateMemberCommandHandler : ICommandHandler<UpdateMemberCommand>
+internal sealed class UpdateMemberCommandHandler(
+    IMemberRepository memberRepository,
+    IUnitOfWork unitOfWork)
+    : ICommandHandler<UpdateMemberCommand>
 {
-    private readonly IMemberRepository _memberRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateMemberCommandHandler(
-        IMemberRepository memberRepository,
-        IUnitOfWork unitOfWork)
-    {
-        _memberRepository = memberRepository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(
         UpdateMemberCommand request,
         CancellationToken cancellationToken)
     {
-        Member? member = await _memberRepository.GetByIdAsync(
+        Member? member = await memberRepository.GetByIdAsync(
             request.MemberId,
             cancellationToken);
 
@@ -41,9 +33,9 @@ internal sealed class UpdateMemberCommandHandler : ICommandHandler<UpdateMemberC
             firstNameResult.Value,
             lastNameResult.Value);
 
-        _memberRepository.Update(member);
+        memberRepository.Update(member);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

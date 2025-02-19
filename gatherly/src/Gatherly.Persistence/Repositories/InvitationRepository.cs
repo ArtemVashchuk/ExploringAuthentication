@@ -3,13 +3,8 @@ using Gatherly.Domain.Repositories;
 
 namespace Gatherly.Persistence.Repositories;
 
-internal sealed class InvitationRepository : IInvitationRepository
+internal sealed class InvitationRepository(ApplicationDbContext dbContext) : IInvitationRepository
 {
-    private readonly ApplicationDbContext _dbContext;
-
-    public InvitationRepository(ApplicationDbContext dbContext) =>
-        _dbContext = dbContext;
-
     public void Add(Invitation invitation) =>
-        _dbContext.Set<Invitation>().Remove(invitation);
+        dbContext.Set<Invitation>().Remove(invitation);
 }

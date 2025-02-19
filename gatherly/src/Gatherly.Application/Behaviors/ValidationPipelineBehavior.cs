@@ -4,27 +4,22 @@ using MediatR;
 
 namespace Gatherly.Application.Behaviors;
 
-public class ValidationPipelineBehavior<TRequest, TResponse>
+public class ValidationPipelineBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
     where TResponse : Result
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators;
-
-    public ValidationPipelineBehavior(IEnumerable<IValidator<TRequest>> validators) =>
-        _validators = validators;
-
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (!_validators.Any())
+        if (!validators.Any())
         {
             return await next();
         }
 
-        Error[] errors = _validators
+        Error[] errors = validators
             .Select(validator => validator.Validate(request))
             .SelectMany(validationResult => validationResult.Errors)
             .Where(validationFailure => validationFailure is not null)

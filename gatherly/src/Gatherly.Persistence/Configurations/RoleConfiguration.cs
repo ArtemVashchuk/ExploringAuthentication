@@ -11,14 +11,14 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
         builder.ToTable(TableNames.Roles);
 
-        builder.HasKey(x => x.Id);
+        builder.HasKey(r => r.Id);
 
         builder.HasMany(x => x.Permissions)
             .WithMany()
             .UsingEntity<RolePermission>();
 
-        builder.HasMany(x => x.Members)
-            .WithMany();
+        builder.HasMany(r => r.Members)
+            .WithMany(m => m.Roles);
 
         builder.HasData(Role.GetValues());
     }

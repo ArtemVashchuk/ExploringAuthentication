@@ -9,20 +9,11 @@ using Quartz;
 namespace Gatherly.Infrastructure.BackgroundJobs;
 
 [DisallowConcurrentExecution]
-public class ProcessOutboxMessagesJob : IJob
+public class ProcessOutboxMessagesJob(ApplicationDbContext dbContext, IPublisher publisher) : IJob
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IPublisher _publisher;
-
-    public ProcessOutboxMessagesJob(ApplicationDbContext dbContext, IPublisher publisher)
-    {
-        _dbContext = dbContext;
-        _publisher = publisher;
-    }
-
     public async Task Execute(IJobExecutionContext context)
     {
-        List<OutboxMessage> messages = await _dbContext
+        List<OutboxMessage> messages = await dbContext
             .Set<OutboxMessage>()
             .Where(m => m.ProcessedOnUtc == null)
             .Take(20)
@@ -43,11 +34,11 @@ public class ProcessOutboxMessagesJob : IJob
                 continue;
             }
 
-            await _publisher.Publish(domainEvent, context.CancellationToken);
+            await publisher.Publish(domainEvent, context.CancellationToken);
 
             outboxMessage.ProcessedOnUtc = DateTime.UtcNow;
         }
 
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
     }
 }

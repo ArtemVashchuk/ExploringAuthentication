@@ -6,13 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gatherly.Persistence.Repositories;
 
-internal sealed class GatheringRepository : IGatheringRepository
+internal sealed class GatheringRepository(ApplicationDbContext dbContext) : IGatheringRepository
 {
-    private readonly ApplicationDbContext _dbContext;
-
-    public GatheringRepository(ApplicationDbContext dbContext) =>
-        _dbContext = dbContext;
-
     public async Task<List<Gathering>> GetByNameAsync(
         string name,
         CancellationToken cancellationToken = default) =>
@@ -34,7 +29,7 @@ internal sealed class GatheringRepository : IGatheringRepository
     public async Task<Gathering?> GetByIdWithInvitationsAsync(
         Guid id,
         CancellationToken cancellationToken = default) =>
-        await _dbContext.Set<Gathering>()
+        await dbContext.Set<Gathering>()
             .Include(g => g.Invitations)
             .Where(gathering => gathering.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
@@ -43,13 +38,13 @@ internal sealed class GatheringRepository : IGatheringRepository
         Specification<Gathering> specification)
     {
         return SpecificationEvaluator.GetQuery(
-            _dbContext.Set<Gathering>(),
+            dbContext.Set<Gathering>(),
             specification);
     }
 
     public void Add(Gathering gathering) =>
-        _dbContext.Set<Gathering>().Add(gathering);
+        dbContext.Set<Gathering>().Add(gathering);
 
     public void Remove(Gathering gathering) =>
-        _dbContext.Set<Gathering>().Remove(gathering);
+        dbContext.Set<Gathering>().Remove(gathering);
 }
