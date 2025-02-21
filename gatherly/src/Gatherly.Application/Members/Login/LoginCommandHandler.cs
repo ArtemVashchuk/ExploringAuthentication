@@ -29,7 +29,7 @@ internal sealed class LoginCommandHandler(
                 DomainErrors.Member.InvalidCredentials);
         }
 
-        string token = jwtProvider.Generate(member);
+        string token = await jwtProvider.GenerateAsync(member);
 
         return token;
     }
