@@ -8,17 +8,27 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Gatherly.Infrastructure.Authentication;
 
-internal sealed class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
+internal sealed class JwtProvider(
+    IOptions<JwtOptions> options,
+    IPermissionService permissionService)
+    : IJwtProvider
 {
     private readonly JwtOptions _options = options.Value;
 
-    public string Generate(Member member)
+    public async Task<string> GenerateAsync(Member member)
     {
-        var claims = new Claim[]
+        var claims = new List<Claim>()
         {
             new(JwtRegisteredClaimNames.Sub, member.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, member.Email.Value)
         };
+
+        HashSet<string> permissions =
+            await permissionService.GetPermissionsAsync(member.Id);
+
+        claims.AddRange(
+            permissions.Select(permission =>
+                new Claim(CustomClaims.Permissions, permission)));
 
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(

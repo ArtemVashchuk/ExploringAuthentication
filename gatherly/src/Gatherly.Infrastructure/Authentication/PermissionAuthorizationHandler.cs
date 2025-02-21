@@ -8,32 +8,22 @@ namespace Gatherly.Infrastructure.Authentication;
 public class PermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFactory)
     : AuthorizationHandler<PermissionRequirement>
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
-
-    protected override async Task HandleRequirementAsync(
+    protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        string? memberId = context.User.Claims.FirstOrDefault(
-            c => c.Type == ClaimTypes.NameIdentifier)
-            ?.Value;
-
-        if (!Guid.TryParse(memberId, out Guid parsedMemberId))
-        {
-            return;
-        }
-
-        using IServiceScope serviceScope = _serviceScopeFactory.CreateScope();
-        
-        IPermissionService permissionService = serviceScope.ServiceProvider
-            .GetRequiredService<IPermissionService>();
-
-        HashSet<string> permissions =
-            await permissionService.GetPermissionsAsync(parsedMemberId);
+        var permissions = context
+            .User
+            .Claims
+            .Where(c => c.Type == CustomClaims.Permissions)
+            .Select(p => p.Value)
+            .ToHashSet();
 
         if (permissions.Contains(requirement.Permission))
         {
             context.Succeed(requirement);
         }
+
+        return Task.CompletedTask;
     }
 }
